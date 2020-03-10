@@ -344,7 +344,7 @@ pub enum Implementation {
         target_arch = "aarch64",
         target_arch = "arm",
         target_arch = "x86_64",
-        target_arch = "x86"
+        target_arch = "x86",
     ))]
     HWAES = 1,
 
@@ -402,7 +402,7 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
         Implementation::VPAES_BSAES
     }
 
-    #[cfg(not(target_arch = "aarch64"))]
+    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
     {
         Implementation::NOHW
     }
