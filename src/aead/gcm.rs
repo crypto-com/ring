@@ -56,7 +56,7 @@ impl Key {
                 }
             }
 
-            #[cfg(not(target_arch = "aarch64"))]
+            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
             Implementation::Fallback => {
                 extern "C" {
                     fn GFp_gcm_init_4bit(key: &mut Key, h: &[u64; 2]);
@@ -148,7 +148,7 @@ impl Context {
                 }
             }
 
-            #[cfg(not(target_arch = "aarch64"))]
+            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
             Implementation::Fallback => {
                 extern "C" {
                     fn GFp_gcm_ghash_4bit(
@@ -190,7 +190,7 @@ impl Context {
                 }
             }
 
-            #[cfg(not(target_arch = "aarch64"))]
+            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
             Implementation::Fallback => {
                 extern "C" {
                     fn GFp_gcm_gmult_4bit(ctx: &mut Context, Htable: *const GCM128_KEY);
@@ -213,6 +213,7 @@ impl Context {
     pub(super) fn is_avx2(&self, cpu_features: cpu::Features) -> bool {
         match detect_implementation(cpu_features) {
             Implementation::CLMUL => has_avx_movbe(self.cpu_features),
+            #[cfg(not(target_env = "sgx"))]
             _ => false,
         }
     }
@@ -248,7 +249,7 @@ enum Implementation {
     #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
     NEON,
 
-    #[cfg(not(target_arch = "aarch64"))]
+    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
     Fallback,
 }
 
@@ -272,8 +273,15 @@ fn detect_implementation(cpu: cpu::Features) -> Implementation {
         return Implementation::NEON;
     }
 
-    #[cfg(not(target_arch = "aarch64"))]
-    Implementation::Fallback
+    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+    {
+        return Implementation::Fallback;
+    }
+
+    #[cfg(target_env = "sgx")]
+    {
+        panic!("No GCM implementation available!")
+    }
 }
 
 #[cfg(target_arch = "x86_64")]

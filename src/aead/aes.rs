@@ -83,7 +83,7 @@ impl Key {
                 })?;
             }
 
-            #[cfg(not(target_arch = "aarch64"))]
+            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
             _ => {
                 extern "C" {
                     fn GFp_aes_nohw_set_encrypt_key(
@@ -133,7 +133,7 @@ impl Key {
                 }
             }
 
-            #[cfg(not(target_arch = "aarch64"))]
+            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
             _ => {
                 extern "C" {
                     fn GFp_aes_nohw_encrypt(a: *const Block, r: *mut Block, key: &AES_KEY);
@@ -288,7 +288,7 @@ pub enum Implementation {
     #[cfg(target_arch = "arm")]
     BSAES = 3,
 
-    #[cfg(not(target_arch = "aarch64"))]
+    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
     Fallback = 4,
 }
 
@@ -316,9 +316,14 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
         Implementation::VPAES
     }
 
-    #[cfg(not(target_arch = "aarch64"))]
+    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
     {
         Implementation::Fallback
+    }
+
+    #[cfg(target_env = "sgx")]
+    {
+        panic!("No AES implementation available!")
     }
 }
 
