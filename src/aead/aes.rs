@@ -406,6 +406,11 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
     {
         Implementation::NOHW
     }
+
+    #[cfg(target_env = "sgx")]
+    {
+        panic!("No AES implementation available!")
+    }
 }
 
 #[cfg(test)]
