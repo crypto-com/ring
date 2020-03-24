@@ -73,6 +73,8 @@
 #![forbid(unused_results)]
 #![no_std]
 
+#![cfg_attr(feature = "std", feature(stdsimd))]
+
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
