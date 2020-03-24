@@ -332,7 +332,7 @@ cc = { version = "1.0.37", default-features = false }
 
 [features]
 # These features are documented in the top-level module's documentation.
-default = ["alloc", "dev_urandom_fallback"]
+default = ["std", "dev_urandom_fallback"]
 alloc = []
 dev_urandom_fallback = ["lazy_static"]
 internal_benches = []
