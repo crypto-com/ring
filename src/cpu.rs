@@ -43,6 +43,8 @@ pub(crate) fn features() -> Features {
             {
                 #[cfg(target_env = "sgx")]
                 {
+                    use std::is_x86_feature_detected;
+
                     extern "C" {
                         static mut GFp_ia32cap_P: [u32; 4];
                     }
@@ -175,11 +177,13 @@ pub(crate) fn features() -> Features {
                 
 
                 #[cfg(not(target_env = "sgx"))]
-                extern "C" {
-                    fn GFp_cpuid_setup();
-                }
-                unsafe {
-                    GFp_cpuid_setup();
+                {
+                    extern "C" {
+                        fn GFp_cpuid_setup();
+                    }
+                    unsafe {
+                        GFp_cpuid_setup();
+                    }
                 }
             }
 
