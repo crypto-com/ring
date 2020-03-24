@@ -65,6 +65,8 @@
 #![no_std]
 #![cfg_attr(feature = "internal_benches", allow(unstable_features), feature(test))]
 
+#![cfg_attr(feature = "std", feature(stdsimd))]
+
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
