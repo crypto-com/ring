@@ -42,10 +42,7 @@ pub(crate) fn features() -> Features {
             {
                 #[cfg(all(target_env = "sgx", feature = "sgx"))]
                 {
-<<<<<<< HEAD
                     extern crate std;
-=======
->>>>>>> Import macro
                     use std::is_x86_feature_detected;
 
                     extern "C" {
