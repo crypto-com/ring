@@ -41,8 +41,9 @@ pub(crate) fn features() -> Features {
         let () = INIT.call_once(|| {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             {
-                #[cfg(target_env = "sgx")]
+                #[cfg(all(target_env = "sgx", feature = "std"))]
                 {
+                    extern crate std;
                     use std::is_x86_feature_detected;
 
                     extern "C" {
