@@ -10,7 +10,7 @@ license-file = "LICENSE"
 name = "ring"
 readme = "doc/link-to-readme.md"
 repository = "https://github.com/briansmith/ring"
-version = "0.16.13"
+version = "0.16.15"
 
 # Prevent multiple versions of *ring* from being linked into the same program.
 links = "ring-asm"
@@ -33,15 +33,16 @@ include = [
     "crypto/cpu-intel.c",
     "crypto/crypto.c",
     "crypto/curve25519/asm/x25519-asm-arm.S",
-    "crypto/fipsmodule/aes/aes.c",
-    "crypto/fipsmodule/aes/asm/aes-586.pl",
-    "crypto/fipsmodule/aes/asm/aes-armv4.pl",
-    "crypto/fipsmodule/aes/asm/aes-x86_64.pl",
+    "crypto/curve25519/curve25519.c",
+    "crypto/curve25519/curve25519_tables.h",
+    "crypto/curve25519/internal.h",
+    "crypto/fipsmodule/aes/aes_nohw.c",
     "crypto/fipsmodule/aes/asm/aesni-x86.pl",
     "crypto/fipsmodule/aes/asm/aesni-x86_64.pl",
     "crypto/fipsmodule/aes/asm/aesv8-armx.pl",
     "crypto/fipsmodule/aes/asm/bsaes-armv7.pl",
     "crypto/fipsmodule/aes/asm/bsaes-x86_64.pl",
+    "crypto/fipsmodule/aes/asm/vsaes-armv7.pl",
     "crypto/fipsmodule/aes/asm/vpaes-x86.pl",
     "crypto/fipsmodule/aes/asm/vpaes-x86_64.pl",
     "crypto/fipsmodule/bn/asm/armv4-mont.pl",
@@ -49,7 +50,6 @@ include = [
     "crypto/fipsmodule/bn/asm/x86-mont.pl",
     "crypto/fipsmodule/bn/asm/x86_64-mont.pl",
     "crypto/fipsmodule/bn/asm/x86_64-mont5.pl",
-    "crypto/fipsmodule/bn/generic.c",
     "crypto/fipsmodule/bn/internal.h",
     "crypto/fipsmodule/bn/montgomery.c",
     "crypto/fipsmodule/bn/montgomery_inv.c",
@@ -72,7 +72,6 @@ include = [
     "crypto/fipsmodule/modes/asm/ghash-x86.pl",
     "crypto/fipsmodule/modes/asm/ghash-x86_64.pl",
     "crypto/fipsmodule/modes/asm/ghashv8-armx.pl",
-    "crypto/fipsmodule/modes/gcm.c",
     "crypto/fipsmodule/modes/internal.h",
     "crypto/fipsmodule/rand/asm/rdrand-x86_64.pl",
     "crypto/fipsmodule/sha/asm/sha256-armv4.pl",
@@ -93,10 +92,12 @@ include = [
     "crypto/poly1305/asm/poly1305-armv8.pl",
     "crypto/poly1305/asm/poly1305-x86.pl",
     "crypto/poly1305/asm/poly1305-x86_64.pl",
+    "doc/link-to-readme.md",
     "examples/checkdigest.rs",
     "include/GFp/aes.h",
     "include/GFp/arm_arch.h",
     "include/GFp/base.h",
+    "include/GFp/check.h",
     "include/GFp/cpu.h",
     "include/GFp/mem.h",
     "include/GFp/type_check.h",
@@ -109,7 +110,10 @@ include = [
     "src/aead/chacha_tests.txt",
     "src/aead/chacha20_poly1305.rs",
     "src/aead/chacha20_poly1305_openssh.rs",
+    "src/aead/counter.rs",
     "src/aead/gcm.rs",
+    "src/aead/gcm/gcm_nohw.rs",
+    "src/aead/iv.rs",
     "src/aead/nonce.rs",
     "src/aead/poly1305.rs",
     "src/aead/poly1305_test.txt",
@@ -226,6 +230,7 @@ include = [
     "tests/aead_tests.rs",
     "tests/agreement_tests.rs",
     "tests/agreement_tests.txt",
+    "tests/constant_time_tests.rs",
     "tests/digest_tests.rs",
     "tests/digest_tests.txt",
     "tests/ecdsa_from_pkcs8_tests.txt",
@@ -267,11 +272,8 @@ include = [
     "tests/rsa_test_public_key_2048.der",
     "tests/rsa_test_public_key_2048_debug.txt",
     "tests/signature_tests.rs",
-    "third_party/fiat/curve25519.c",
     "third_party/fiat/curve25519_32.h",
     "third_party/fiat/curve25519_64.h",
-    "third_party/fiat/curve25519_tables.h",
-    "third_party/fiat/internal.h",
     "third_party/fiat/LICENSE",
     "third_party/fiat/make_curve25519_tables.py",
     "third_party/NIST/SHAVS/SHA1LongMsg.rsp",
@@ -332,6 +334,7 @@ slow_tests = []
 std = ["alloc"]
 test_logging = []
 sgx = ["std"]
+wasm32_c = []
 
 # XXX: debug = false because of https://github.com/rust-lang/rust/issues/34122
 

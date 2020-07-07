@@ -407,7 +407,7 @@ enum KeyInner {
 impl UnboundKey {
     /// Constructs an `UnboundKey`.
     ///
-    /// Fails if `key_bytes.len() != ` algorithm.key_len()`.
+    /// Fails if `key_bytes.len() != algorithm.key_len()`.
     pub fn new(
         algorithm: &'static Algorithm,
         key_bytes: &[u8],
@@ -670,7 +670,9 @@ mod block;
 mod chacha;
 mod chacha20_poly1305;
 pub mod chacha20_poly1305_openssh;
+mod counter;
 mod gcm;
+mod iv;
 mod nonce;
 mod poly1305;
 pub mod quic;

@@ -12,27 +12,22 @@
 // OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 // CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-/// An approximation of `core::convert::From` that lets us define our own
-/// conversions between types defined outside this crate.
+/// The IV for a single block encryption.
 ///
-/// Do not use this this in situations where `From` could be used.
-pub trait From_<F>: Sized {
-    fn from_(value: F) -> Self;
-}
+/// Intentionally not `Clone` to ensure each is used only once.
+#[repr(C)]
+pub struct Iv([u8; IV_LEN]);
 
-pub trait Into_<T>
-where
-    T: Sized,
-{
-    fn into_(self) -> T;
-}
+pub const IV_LEN: usize = 16;
 
-impl<T, F> Into_<T> for F
-where
-    T: From_<F>,
-{
+impl Iv {
     #[inline]
-    fn into_(self) -> T {
-        T::from_(self)
+    pub fn assume_unique_for_key(a: [u8; IV_LEN]) -> Self {
+        Self(a)
+    }
+
+    #[inline]
+    pub fn into_bytes_less_safe(self) -> [u8; IV_LEN] {
+        self.0
     }
 }
