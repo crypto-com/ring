@@ -467,6 +467,7 @@ fn build_library(
             }
             _ => {
                 let _ = c.flag("-Wl,--gc-sections");
+                enable_lvi_hardening(&mut c);
             }
         }
         for o in objs {
@@ -550,6 +551,7 @@ fn cc(
         && target.arch != "wasm32"
     {
         let _ = c.flag("-fstack-protector");
+        enable_lvi_hardening(&mut c);
     }
 
     match (target.os.as_str(), target.env.as_str()) {
@@ -811,5 +813,27 @@ where
                 cb(&entry);
             }
         }
+    }
+}
+
+fn lvi_mitigation_not_supported(base_config: &cc::Build) -> bool {
+    let feature_flag = base_config.is_flag_supported("-mlvi-hardening");
+
+    match feature_flag {
+        Ok(false) => true,
+        Err(_) => true,
+        _ => false,
+    }
+}
+
+fn enable_lvi_hardening(c: &mut cc::Build) {
+    if lvi_mitigation_not_supported(&c) {
+        println!(
+            "cargo:warning=\"LVI mitigation flags are not supported by the C compiler (please upgrade to the latest LLVM 11)\""
+        );
+    } else {
+        let _ = c.flag("-mlvi-hardening");
+        let _ = c.flag("-mllvm");
+        let _ = c.flag("-x86-experimental-lvi-inline-asm-hardening");
     }
 }
