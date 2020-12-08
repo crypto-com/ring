@@ -448,7 +448,7 @@ mod rdrandom {
             let mut buf = [0u8; 8];
             match Result::from(unsafe { CRYPTO_rdrand(&mut buf) }) {
                 Ok(()) => return Ok(buf),
-                Err(_) => continue
+                Err(_) => continue,
             }
         }
         Err(error::Unspecified)
