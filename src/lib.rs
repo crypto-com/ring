@@ -72,7 +72,6 @@
 #![deny(missing_docs, unused_qualifications, variant_size_differences)]
 #![forbid(unused_results)]
 #![no_std]
-
 #![cfg_attr(all(target_env = "sgx", feature = "sgx"), feature(stdsimd))]
 
 #[cfg(feature = "alloc")]

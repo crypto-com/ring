@@ -152,7 +152,7 @@ impl Key {
                 set_encrypt_key!(GFp_vpaes_set_encrypt_key, bytes, key_bits, &mut key)?
             }
 
-            #[cfg(not(target_arch = "aarch64"))]
+            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
             Implementation::NOHW => {
                 set_encrypt_key!(GFp_aes_nohw_set_encrypt_key, bytes, key_bits, &mut key)?
             }
@@ -183,7 +183,7 @@ impl Key {
             ))]
             Implementation::VPAES_BSAES => encrypt_block!(GFp_vpaes_encrypt, a, self),
 
-            #[cfg(not(target_arch = "aarch64"))]
+            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
             Implementation::NOHW => encrypt_block!(GFp_aes_nohw_encrypt, a, self),
         }
     }
@@ -280,7 +280,7 @@ impl Key {
                 });
             }
 
-            #[cfg(not(target_arch = "aarch64"))]
+            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
             Implementation::NOHW => ctr32_encrypt_blocks!(
                 GFp_aes_nohw_ctr32_encrypt_blocks,
                 in_out,
@@ -357,7 +357,7 @@ pub enum Implementation {
     ))]
     VPAES_BSAES = 2,
 
-    #[cfg(not(target_arch = "aarch64"))]
+    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
     NOHW = 3,
 }
 
@@ -402,9 +402,28 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
         Implementation::VPAES_BSAES
     }
 
-    #[cfg(not(target_arch = "aarch64"))]
+    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
     {
         Implementation::NOHW
+    }
+
+    #[cfg(target_env = "sgx")]
+    {
+        panic!("No AES implementation available!")
+    }
+}
+
+#[must_use]
+#[repr(transparent)]
+pub struct ZeroMeansSuccess(c::int);
+
+impl From<ZeroMeansSuccess> for Result<(), error::Unspecified> {
+    fn from(ZeroMeansSuccess(value): ZeroMeansSuccess) -> Self {
+        if value == 0 {
+            Ok(())
+        } else {
+            Err(error::Unspecified)
+        }
     }
 }
 

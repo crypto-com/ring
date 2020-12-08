@@ -819,11 +819,7 @@ where
 fn lvi_mitigation_not_supported(base_config: &cc::Build) -> bool {
     let feature_flag = base_config.is_flag_supported("-mlvi-hardening");
 
-    match feature_flag {
-        Ok(false) => true,
-        Err(_) => true,
-        _ => false,
-    }
+    matches!(feature_flag, Ok(false) | Err(_))
 }
 
 fn enable_lvi_hardening(c: &mut cc::Build) {
