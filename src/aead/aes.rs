@@ -402,14 +402,9 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
         Implementation::VPAES_BSAES
     }
 
-    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+    #[cfg(not(target_arch = "aarch64"))]
     {
         Implementation::NOHW
-    }
-
-    #[cfg(target_env = "sgx")]
-    {
-        panic!("No AES implementation available!")
     }
 }
 

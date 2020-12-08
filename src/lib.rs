@@ -75,8 +75,6 @@
 
 #![cfg_attr(all(target_env = "sgx", feature = "sgx"), feature(stdsimd))]
 
-#![cfg_attr(all(target_env = "sgx", feature = "sgx"), feature(stdsimd))]
-
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
