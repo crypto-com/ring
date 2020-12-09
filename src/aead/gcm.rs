@@ -65,7 +65,7 @@ impl Key {
                 }
             }
 
-            #[cfg(all(not(target_arch = "aarch64")))]
+            #[cfg(not(target_arch = "aarch64"))]
             Implementation::Fallback => {
                 h_table.Htable[0] = gcm_nohw::init(h);
             }
@@ -168,7 +168,7 @@ impl Context {
                 }
             }
 
-            #[cfg(all(not(target_arch = "aarch64")))]
+            #[cfg(not(target_arch = "aarch64"))]
             Implementation::Fallback => {
                 gcm_nohw::ghash(xi, h_table.Htable[0], input);
             }
@@ -210,7 +210,7 @@ impl Context {
                 }
             }
 
-            #[cfg(all(not(target_arch = "aarch64")))]
+            #[cfg(not(target_arch = "aarch64"))]
             Implementation::Fallback => {
                 gcm_nohw::gmult(xi, h_table.Htable[0]);
             }
@@ -288,7 +288,7 @@ enum Implementation {
     #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
     NEON,
 
-    #[cfg(all(not(target_arch = "aarch64")))]
+    #[cfg(not(target_arch = "aarch64"))]
     Fallback,
 }
 
@@ -330,7 +330,7 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
         return Implementation::NEON;
     }
 
-    #[cfg(all(not(target_arch = "aarch64")))]
+    #[cfg(not(target_arch = "aarch64"))]
     {
         return Implementation::Fallback;
     }
