@@ -65,7 +65,7 @@ impl Key {
                 }
             }
 
-            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+            #[cfg(not(target_arch = "aarch64"))]
             Implementation::Fallback => {
                 h_table.Htable[0] = gcm_nohw::init(h);
             }
@@ -168,7 +168,7 @@ impl Context {
                 }
             }
 
-            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+            #[cfg(not(target_arch = "aarch64"))]
             Implementation::Fallback => {
                 gcm_nohw::ghash(xi, h_table.Htable[0], input);
             }
@@ -210,7 +210,7 @@ impl Context {
                 }
             }
 
-            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+            #[cfg(not(target_arch = "aarch64"))]
             Implementation::Fallback => {
                 gcm_nohw::gmult(xi, h_table.Htable[0]);
             }
@@ -228,7 +228,6 @@ impl Context {
     pub(super) fn is_avx2(&self, cpu_features: cpu::Features) -> bool {
         match detect_implementation(cpu_features) {
             Implementation::CLMUL => has_avx_movbe(self.cpu_features),
-            #[cfg(not(target_env = "sgx"))]
             _ => false,
         }
     }
@@ -289,7 +288,7 @@ enum Implementation {
     #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
     NEON,
 
-    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+    #[cfg(not(target_arch = "aarch64"))]
     Fallback,
 }
 
@@ -331,18 +330,13 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
         return Implementation::NEON;
     }
 
-    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+    #[cfg(not(target_arch = "aarch64"))]
     {
         return Implementation::Fallback;
-    }
-
-    #[cfg(target_env = "sgx")]
-    {
-        panic!("No GCM implementation available!")
     }
 }
 
 #[cfg(target_arch = "x86_64")]
 fn has_avx_movbe(cpu_features: cpu::Features) -> bool {
-    return cpu::intel::AVX.available(cpu_features) && cpu::intel::MOVBE.available(cpu_features);
+    cpu::intel::AVX.available(cpu_features) && cpu::intel::MOVBE.available(cpu_features)
 }

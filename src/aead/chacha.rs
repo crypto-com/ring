@@ -13,16 +13,16 @@
 // OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 // CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-use super::{counter, iv::Iv, Block, BLOCK_LEN};
+use super::{counter, iv::Iv, quic::Sample, BLOCK_LEN};
 use crate::{c, endian::*};
 
-#[repr(C)]
-pub struct Key([u8; KEY_LEN]);
+#[repr(transparent)]
+pub struct Key([LittleEndian<u32>; KEY_LEN / 4]);
 
 impl From<[u8; KEY_LEN]> for Key {
     #[inline]
     fn from(value: [u8; KEY_LEN]) -> Self {
-        Self(value)
+        Self(FromByteArray::from_byte_array(&value))
     }
 }
 
@@ -52,9 +52,9 @@ impl Key {
     }
 
     #[inline]
-    pub fn new_mask(&self, sample: Block) -> [u8; 5] {
+    pub fn new_mask(&self, sample: Sample) -> [u8; 5] {
         let mut out: [u8; 5] = [0; 5];
-        let iv = Iv::assume_unique_for_key(*sample.as_ref());
+        let iv = Iv::assume_unique_for_key(sample);
 
         unsafe {
             self.encrypt(

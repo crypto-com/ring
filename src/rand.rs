@@ -180,10 +180,12 @@ use self::sysrand::fill as fill_impl;
 use self::sysrand_or_urandom::fill as fill_impl;
 
 #[cfg(any(
+    target_os = "dragonfly",
     target_os = "freebsd",
+    target_os = "illumos",
     target_os = "netbsd",
     target_os = "openbsd",
-    target_os = "solaris"
+    target_os = "solaris",
 ))]
 use self::urandom::fill as fill_impl;
 
@@ -354,10 +356,12 @@ mod sysrand_or_urandom {
         any(target_os = "android", target_os = "linux"),
         feature = "dev_urandom_fallback"
     ),
+    target_os = "dragonfly",
     target_os = "freebsd",
     target_os = "netbsd",
     target_os = "openbsd",
-    target_os = "solaris"
+    target_os = "solaris",
+    target_os = "illumos"
 ))]
 mod urandom {
     use crate::error;
@@ -444,7 +448,7 @@ mod rdrandom {
             let mut buf = [0u8; 8];
             match Result::from(unsafe { CRYPTO_rdrand(&mut buf) }) {
                 Ok(()) => return Ok(buf),
-                Err(_) => continue
+                Err(_) => continue,
             }
         }
         Err(error::Unspecified)

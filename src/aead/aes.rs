@@ -12,7 +12,7 @@
 // OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 // CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-use super::{counter, iv::Iv, Block, Direction, BLOCK_LEN};
+use super::{counter, iv::Iv, quic::Sample, Block, Direction, BLOCK_LEN};
 use crate::{bits::BitLength, c, cpu, endian::*, error, polyfill};
 
 pub(crate) struct Key {
@@ -152,7 +152,7 @@ impl Key {
                 set_encrypt_key!(GFp_vpaes_set_encrypt_key, bytes, key_bits, &mut key)?
             }
 
-            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+            #[cfg(not(target_arch = "aarch64"))]
             Implementation::NOHW => {
                 set_encrypt_key!(GFp_aes_nohw_set_encrypt_key, bytes, key_bits, &mut key)?
             }
@@ -183,7 +183,7 @@ impl Key {
             ))]
             Implementation::VPAES_BSAES => encrypt_block!(GFp_vpaes_encrypt, a, self),
 
-            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+            #[cfg(not(target_arch = "aarch64"))]
             Implementation::NOHW => encrypt_block!(GFp_aes_nohw_encrypt, a, self),
         }
     }
@@ -280,7 +280,7 @@ impl Key {
                 });
             }
 
-            #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+            #[cfg(not(target_arch = "aarch64"))]
             Implementation::NOHW => ctr32_encrypt_blocks!(
                 GFp_aes_nohw_ctr32_encrypt_blocks,
                 in_out,
@@ -291,8 +291,8 @@ impl Key {
         }
     }
 
-    pub fn new_mask(&self, sample: Block) -> [u8; 5] {
-        let block = self.encrypt_block(sample);
+    pub fn new_mask(&self, sample: Sample) -> [u8; 5] {
+        let block = self.encrypt_block(Block::from(&sample));
 
         let mut out: [u8; 5] = [0; 5];
         out.copy_from_slice(&block.as_ref()[..5]);
@@ -300,6 +300,10 @@ impl Key {
         out
     }
 
+    // TODO: use `matches!` when MSRV increases to 1.42.0 and remove this
+    // `#[allow(...)]`
+    #[allow(clippy::unknown_clippy_lints)]
+    #[allow(clippy::match_like_matches_macro)]
     #[cfg(target_arch = "x86_64")]
     #[must_use]
     pub fn is_aes_hw(&self) -> bool {
@@ -340,7 +344,7 @@ pub enum Implementation {
         target_arch = "aarch64",
         target_arch = "arm",
         target_arch = "x86_64",
-        target_arch = "x86"
+        target_arch = "x86",
     ))]
     HWAES = 1,
 
@@ -353,7 +357,7 @@ pub enum Implementation {
     ))]
     VPAES_BSAES = 2,
 
-    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+    #[cfg(not(target_arch = "aarch64"))]
     NOHW = 3,
 }
 
@@ -398,14 +402,9 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
         Implementation::VPAES_BSAES
     }
 
-    #[cfg(all(not(target_arch = "aarch64"), not(target_env = "sgx")))]
+    #[cfg(not(target_arch = "aarch64"))]
     {
         Implementation::NOHW
-    }
-
-    #[cfg(target_env = "sgx")]
-    {
-        panic!("No AES implementation available!")
     }
 }
 

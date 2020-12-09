@@ -12,24 +12,6 @@
 // OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 // CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#![forbid(
-    anonymous_parameters,
-    box_pointers,
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_extern_crates,
-    unused_import_braces,
-    unused_qualifications,
-    unused_results,
-    variant_size_differences,
-    warnings
-)]
-
 use ring::{
     signature::{self, Ed25519KeyPair, KeyPair},
     test, test_file,
@@ -114,14 +96,11 @@ fn test_ed25519_from_pkcs8_unchecked() {
             let input = test_case.consume_bytes("Input");
             let error = test_case.consume_optional_string("Error");
 
-            match (
-                Ed25519KeyPair::from_pkcs8_maybe_unchecked(&input),
-                error.clone(),
-            ) {
+            match (Ed25519KeyPair::from_pkcs8_maybe_unchecked(&input), error) {
                 (Ok(_), None) => (),
                 (Err(e), None) => panic!("Failed with error \"{}\", but expected to succeed", e),
                 (Ok(_), Some(e)) => panic!("Succeeded, but expected error \"{}\"", e),
-                (Err(actual), Some(expected)) => assert_eq!(format!("{}", actual), expected),
+                (Err(actual), Some(expected)) => assert_eq!(actual.description_(), expected),
             };
 
             Ok(())
@@ -139,11 +118,11 @@ fn test_ed25519_from_pkcs8() {
             let input = test_case.consume_bytes("Input");
             let error = test_case.consume_optional_string("Error");
 
-            match (Ed25519KeyPair::from_pkcs8(&input), error.clone()) {
+            match (Ed25519KeyPair::from_pkcs8(&input), error) {
                 (Ok(_), None) => (),
                 (Err(e), None) => panic!("Failed with error \"{}\", but expected to succeed", e),
                 (Ok(_), Some(e)) => panic!("Succeeded, but expected error \"{}\"", e),
-                (Err(actual), Some(expected)) => assert_eq!(format!("{}", actual), expected),
+                (Err(actual), Some(expected)) => assert_eq!(actual.description_(), expected),
             };
 
             Ok(())
@@ -155,7 +134,7 @@ fn test_ed25519_from_pkcs8() {
 fn ed25519_test_public_key_coverage() {
     const PRIVATE_KEY: &[u8] = include_bytes!("ed25519_test_private_key.p8");
     const PUBLIC_KEY: &[u8] = include_bytes!("ed25519_test_public_key.der");
-    const PUBLIC_KEY_DEBUG: &'static str =
+    const PUBLIC_KEY_DEBUG: &str =
         "PublicKey(\"5809e9fef6dcec58f0f2e3b0d67e9880a11957e083ace85835c3b6c8fbaf6b7d\")";
 
     let key_pair = signature::Ed25519KeyPair::from_pkcs8(PRIVATE_KEY).unwrap();
@@ -164,7 +143,11 @@ fn ed25519_test_public_key_coverage() {
     assert_eq!(key_pair.public_key().as_ref(), PUBLIC_KEY);
 
     // Test `Clone`.
-    let _ = key_pair.public_key().clone();
+    #[allow(clippy::clone_on_copy)]
+    let _: <Ed25519KeyPair as KeyPair>::PublicKey = key_pair.public_key().clone();
+
+    // Test `Copy`.
+    let _: <Ed25519KeyPair as KeyPair>::PublicKey = *key_pair.public_key();
 
     // Test `Debug`.
     assert_eq!(PUBLIC_KEY_DEBUG, format!("{:?}", key_pair.public_key()));
