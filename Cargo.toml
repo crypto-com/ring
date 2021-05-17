@@ -72,6 +72,9 @@ include = [
     "crypto/fipsmodule/modes/asm/ghash-x86.pl",
     "crypto/fipsmodule/modes/asm/ghash-x86_64.pl",
     "crypto/fipsmodule/modes/asm/ghashv8-armx.pl",
+    "crypto/fipsmodule/modes/gcm.c",
+    "crypto/fipsmodule/modes/internal.h",
+    "crypto/fipsmodule/rand/asm/rdrand-x86_64.pl",
     "crypto/fipsmodule/sha/asm/sha256-armv4.pl",
     "crypto/fipsmodule/sha/asm/sha512-armv4.pl",
     "crypto/fipsmodule/sha/asm/sha512-armv8.pl",
@@ -331,13 +334,14 @@ cc = { version = "1.0.62", default-features = false }
 
 [features]
 # These features are documented in the top-level module's documentation.
-default = ["alloc", "dev_urandom_fallback"]
+default = ["sgx", "dev_urandom_fallback"]
 alloc = []
 dev_urandom_fallback = ["once_cell"]
 internal_benches = []
 slow_tests = []
 std = ["alloc"]
 test_logging = []
+sgx = ["std"]
 wasm32_c = []
 
 # XXX: debug = false because of https://github.com/rust-lang/rust/issues/34122

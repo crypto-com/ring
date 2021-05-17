@@ -331,7 +331,9 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
     }
 
     #[cfg(not(target_arch = "aarch64"))]
-    Implementation::Fallback
+    {
+        return Implementation::Fallback;
+    }
 }
 
 #[cfg(target_arch = "x86_64")]

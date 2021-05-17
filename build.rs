@@ -70,6 +70,7 @@ const RING_SRCS: &[(&[&str], &str)] = &[
     (&[X86_64], "crypto/poly1305/poly1305_vec.c"),
     (&[X86_64], SHA512_X86_64),
     (&[X86_64], "crypto/cipher_extra/asm/chacha20_poly1305_x86_64.pl"),
+    (&[X86_64], "crypto/fipsmodule/rand/asm/rdrand-x86_64.pl"),
 
     (&[AARCH64, ARM], "crypto/fipsmodule/aes/asm/aesv8-armx.pl"),
     (&[AARCH64, ARM], "crypto/fipsmodule/modes/asm/ghashv8-armx.pl"),
@@ -467,6 +468,7 @@ fn build_library(
             }
             _ => {
                 let _ = c.flag("-Wl,--gc-sections");
+                enable_lvi_hardening(&mut c);
             }
         }
         for o in objs {
@@ -550,6 +552,7 @@ fn cc(
         && target.arch != "wasm32"
     {
         let _ = c.flag("-fstack-protector");
+        enable_lvi_hardening(&mut c);
     }
 
     match (target.os.as_str(), target.env.as_str()) {
@@ -811,5 +814,23 @@ where
                 cb(&entry);
             }
         }
+    }
+}
+
+fn lvi_mitigation_not_supported(base_config: &cc::Build) -> bool {
+    let feature_flag = base_config.is_flag_supported("-mlvi-hardening");
+
+    matches!(feature_flag, Ok(false) | Err(_))
+}
+
+fn enable_lvi_hardening(c: &mut cc::Build) {
+    if lvi_mitigation_not_supported(&c) {
+        println!(
+            "cargo:warning=\"LVI mitigation flags are not supported by the C compiler (please upgrade to the latest LLVM 11)\""
+        );
+    } else {
+        let _ = c.flag("-mlvi-hardening");
+        let _ = c.flag("-mllvm");
+        let _ = c.flag("-x86-experimental-lvi-inline-asm-hardening");
     }
 }

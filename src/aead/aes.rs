@@ -344,7 +344,7 @@ pub enum Implementation {
         target_arch = "aarch64",
         target_arch = "arm",
         target_arch = "x86_64",
-        target_arch = "x86"
+        target_arch = "x86",
     ))]
     HWAES = 1,
 
@@ -405,6 +405,20 @@ fn detect_implementation(cpu_features: cpu::Features) -> Implementation {
     #[cfg(not(target_arch = "aarch64"))]
     {
         Implementation::NOHW
+    }
+}
+
+#[must_use]
+#[repr(transparent)]
+pub struct ZeroMeansSuccess(c::int);
+
+impl From<ZeroMeansSuccess> for Result<(), error::Unspecified> {
+    fn from(ZeroMeansSuccess(value): ZeroMeansSuccess) -> Self {
+        if value == 0 {
+            Ok(())
+        } else {
+            Err(error::Unspecified)
+        }
     }
 }
 
